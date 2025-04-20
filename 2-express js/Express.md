@@ -355,26 +355,6 @@ app.use(logginMiddleware)
 
 ```
 
-- simple auth middleware
-
-```js
-const AuthMiddleware = (req,res,next)=>{
-    //check body token
-    const {body} = req
-    const {token} = body
-    if(token === "token123"){
-        console.log("correct token");
-        next()
-    }else {
-        console.log("wrong token");
-        res.sendStatus(401)
-    }
-    next()
-}
-
-app.use(AuthMiddleware)
-
-```
 
 - if you want middleware to be applied on specific route rather than on all routes do this
 
@@ -385,6 +365,9 @@ app.get('',logginMiddleware,(req,res)=>{
 })
 
 ```
+
+# 
+
 ## validation
 
 - for validating body , query etc we will be using express validator
