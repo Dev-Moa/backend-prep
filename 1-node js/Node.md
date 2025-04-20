@@ -1,5 +1,5 @@
-# Node.js
-
+# Node.js Course
+- How web works
 - What Is Node.js
 - Course Setup
 - REPL
@@ -18,6 +18,60 @@
 - Node.js Events
 - Streams In Node.js
 
+
+
+# How The Web Works
+
+## Request-Response Cycle
+1. Browser (Client) enters URL: `https://google.com/maps`
+   - Protocol (https://)
+   - Domain name (google.com)
+   - Resource (/maps)
+
+2. DNS Lookup
+   - Domain name converted to real IP address
+   - Handled by Internet Service Provider (ISP)
+   - Example: `google.com` → `142.251.16.100:443`
+
+3. TCP/IP Connection
+   - TCP (Transmission Control Protocol)
+     - Breaks requests/responses into small packets
+     - Reassembles packets at destination
+   - IP (Internet Protocol)
+     - Routes packets through internet
+     - Ensures delivery using IP addresses
+
+4. HTTP Request
+   - Start Line
+     - HTTP method (GET, POST, PUT, PATCH)
+     - Request target (/maps)
+     - HTTP version
+   - Headers (browser info, time, language)
+   - Body (for POST/PUT requests)
+
+5. HTTP Response
+   - Start Line
+     - Status code (200 OK, 404 Not Found)
+     - HTTP version
+   - Headers (response info)
+   - Body (HTML, JSON, etc.)
+
+## Website Loading Process
+1. Initial HTML file received
+2. Browser scans HTML for assets
+   - JavaScript files
+   - CSS files
+   - Images
+   - Other resources
+3. Separate HTTP request for each asset
+4. Multiple concurrent requests (limited)
+5. Browser renders website using received files
+
+## HTTPS vs HTTP
+- HTTPS: Encrypted using TLS/SSL
+- Same request-response logic
+- More secure for data transmission
+
 # What is Node.js
 
 - Node.js is a free open source cross platform js run time environment that lets developers write command line tools and serverside scripts outside of a browser
@@ -28,7 +82,6 @@
 - performant
 - large eco system
 - cross platform
-
 
 # Setup
 
@@ -85,6 +138,8 @@ module.exports = add;
 - Modules are a way to pass our code from one file to another.
 - it allows us to reuse our code , so we dont have to rewrite our code again and again .
 
+## CommonJS Way (Traditional)
+
 ```js
 // greet.js
 const greet = ()=>{
@@ -101,7 +156,26 @@ const greet = require('./greet.js')
 greet()
 
 ```
-- Using ES6 modules way
+## ES6 Modules Way (Modern)
+
+```js
+// greet.js
+export const greet = () => {
+    console.log("hello you");
+}
+
+// You can also use default export
+export default greet;
+```
+
+```js
+// index.js
+import { greet } from './greet.js'  // Named import
+// OR
+import greet from './greet.js'      // Default import
+greet()
+```
+
 
 - initialize package.json
 
@@ -134,6 +208,67 @@ npm init -y
 
 ```
 - or another solution is to use .mjs extension for files
+
+## Module Resolution Order
+1. Core modules (like http, fs) checked first
+2. Developer modules (starting with ./ or ../) checked in filesystem
+3. NPM modules checked in node_modules folder
+
+## Module Caching
+- Modules are cached after first load
+- Subsequent requires return cached result
+- Ensures module code runs only once
+- Improves performance
+
+## Module Caching Example
+```js
+// test-module.js
+console.log('Module code executed');  // Runs only once
+module.exports = function() {
+    console.log('Function called');
+};
+
+// main.js
+require('./test-module')();  // Logs: Module code executed, Function called
+require('./test-module')();  // Logs: Function called
+require('./test-module')();  // Logs: Function called
+```
+
+## Export Patterns Comparison
+1. Single Export (use module.exports):
+```js
+// When exporting one thing
+module.exports = function add(a, b) {
+    return a + b;
+};
+```
+
+2. Multiple Exports (use exports):
+```js
+// When exporting multiple items
+exports.add = (a, b) => a + b;
+exports.multiply = (a, b) => a * b;
+```
+
+## Export Patterns - Practical Examples
+1. Class Export:
+```js
+// Single class export
+module.exports = class Calculator {
+    add(a, b) { return a + b; }
+    multiply(a, b) { return a * b; }
+};
+```
+
+2. Multiple Functions with Destructuring:
+```js
+// Export multiple functions
+exports.add = (a, b) => a + b;
+exports.multiply = (a, b) => a * b;
+
+// Import with destructuring
+const { add, multiply } = require('./math');
+```
 
 # Path Module
 
@@ -205,7 +340,7 @@ try {
 
 ```
 
-# OS Module
+# OS Module 
 - operating system module give more info about your operating system
 
 ```js
@@ -396,76 +531,281 @@ npm update pkg         # Update package
 
 # Node.js Behind The Scenes
 
-- node js has two main dependencies
+## Core Architecture
+1. V8 Engine (C++ & JavaScript)
+   - Converts JavaScript → Machine code
+   - Core of JavaScript execution
 
-- v8 engine converts js code into machine code so that machine can understand
-- libuv opensource library with strong focus on async io
+2. libuv (C++)
+   - Handles async I/O operations
+   - Provides:
+     - Event Loop: Manages callbacks & network I/O
+     - Thread Pool: Handles CPU-intensive tasks
+     - System access (OS, filesystem, networking)
 
-- libuv is a multiplatform support library with a focus on async io.
-- it was developed speicially for node js
+## Process Flow
+1. Node.js starts:
+   ```
+   [Program Launch]
+         ↓
+   [Execute top-level code]
+         ↓
+   [Register callbacks]
+         ↓
+   [Start Event Loop]
+   ```
 
-- features of libuv include : file system events,async DNS resolution, async file system ops, full featured event loop
+2. Thread Management:
+   - Main Thread: Handles all user connections
+   - Thread Pool: 4 additional threads (max 128)
+     - Handles: File ops, Crypto, Compression, DNS
 
-- other node js dependencies include :
-    - Llhttp
-    - c-ares
-    - open ssl
-    - zlib
+## Event Loop Architecture
+```
+┌────────────────────────────────────┐
+│           Event Loop               │
+│                                    │
+│ ┌──────────┐  ┌──────────┐        │
+│ │  Timers  │  │   I/O    │        │
+│ └──────────┘  └──────────┘        │
+│                                    │
+│ ┌──────────┐  ┌──────────┐        │
+│ │setImmed. │  │  Close   │        │
+│ └──────────┘  └──────────┘        │
+└────────────────────────────────────┘
+```
+```js
+import fs from 'fs';
+import crypto from 'crypto';
 
-- thread : each unit capable of executing code is called thread
+// Record start time
+const start = Date.now();
 
-## Single-Threaded Nature
-- Node.js runs on a single thread per application
-- All users share the same thread
-- Blocking operations affect all users
-- This is why async operations are crucial
+// Process.nextTick example
+process.nextTick(() => {
+    console.log('Process.nextTick executed');
+});
 
-## I/O Operations
-- I/O = Input/Output operations (file system, network requests)
-- Node.js uses non-blocking I/O model
-- Heavy I/O work is offloaded to background
-- Callback functions handle results when ready
+// Timer examples
+setTimeout(() => {
+    console.log('Timer 1 finished - 0s', Date.now() - start);
+}, 0);
 
-## Blocking vs Non-Blocking
-- Blocking: Each operation waits for previous to complete
-- Non-Blocking: Operations run in background while code continues
-- Example:
-  - Blocking: `readFileSync` stops code execution
-  - Non-Blocking: `readFile` (with callback) or `fs.promises` (your current approach)
+setTimeout(() => {
+    console.log('Timer 2 finished - 0s', Date.now() - start);
+}, 0);
 
-## Why Node.js Uses This Model
-- Different from PHP's multi-thread approach
-- Designed for high performance and scalability
-- Better resource utilization
-- Ideal for I/O intensive applications
+setTimeout(() => {
+    console.log('Timer 3 finished - 3s', Date.now() - start);
+}, 3000);
+
+// Immediate example
+setImmediate(() => {
+    console.log('Immediate 1 finished', Date.now() - start);
+});
+
+// I/O example
+fs.readFile('test-file.txt', () => {
+    console.log('I/O finished', Date.now() - start);
+});
+
+// Thread pool example - password encryption
+// Set thread pool size
+process.env.UV_THREADPOOL_SIZE = '4';
+
+// Multiple parallel crypto operations
+for(let i = 1; i <= 4; i++) {
+    crypto.pbkdf2('password', 'salt', 100000, 64, 'sha512', () => {
+        console.log(`Password ${i} encrypted:`, Date.now() - start);
+    });
+}
+
+// Top-level code
+console.log('Hello from top-level code');
+
+```
+### Phases (In Order)
+1. Timer Callbacks (`setTimeout`, `setInterval`)
+2. I/O Polling & Callbacks (fs, network)
+3. setImmediate Callbacks
+4. Close Callbacks
+
+### Priority Queues
+1. Process.nextTick() (Highest)
+2. Microtasks (Promises)
+3. Regular callbacks
+
+## Best Practices
+1. Avoid Blocking:
+   - Use async versions of functions
+   - Offload heavy computations to Thread Pool
+   - Break down complex tasks
+
+2. When to Use Thread Pool:
+   - File operations
+   - Cryptography
+   - Compression
+   - DNS lookups
 
 # Node.js Events
 
+## Event-Driven Architecture
+- Core concept in Node.js where certain objects (event emitters) emit named events when important actions occur
+- Examples of events:
+  - Request hitting server
+  - Timer expiring
+  - File finishing to read
+- Events are picked up by event listeners that execute callback functions
+- Many core modules (HTTP, File System, Timers) are built around this architecture
+## Observer Pattern
+- Event-driven architecture implements the Observer Pattern
+- Components:
+  - Subject (Emitter): Emits events
+  - Observer (Listener): Waits for and reacts to events
+- Benefits:
+  - Modules remain decoupled and self-contained
+  - Multiple listeners can react to the same event
+  - More reactive approach compared to direct function calls
+
+## Basic Event Emitter Usage
 ```js
 import EventEmitter from "events"
 
-// create instance
-const customEmitter = new EventEmitter()
+// Create custom emitter
+const myEmitter = new EventEmitter()
 
-// 1. on : listen/register for an event ,
-// if you create using on you call call it as many times as you want
-customEmitter.on("response",(name,id)=>{
-    console.log(`user : ${name},${id}`);
+// Set up multiple listeners for same event
+myEmitter.on("newSale", () => {
+    console.log("There was a new sale!")
 })
-// 2. once : listen/register for an event
-customEmitter.once("response",(name,id)=>{
-    console.log(`user : ${name},${id}`);
-})
-// 3. emit : emit/call an event
-customEmitter.emit("response","me","123")
-customEmitter.emit("response","me","123")
 
+myEmitter.on("newSale", () => {
+    console.log("Customer name: Jonas")
+})
+
+// Listener with parameters
+myEmitter.on("newSale", (stock) => {
+    console.log(`There are now ${stock} items left in stock`)
+})
+
+// Emit event with data
+myEmitter.emit("newSale", 9)
+```
+
+## Creating Custom Event Emitter Class
+```js
+import EventEmitter from "events"
+
+class Sales extends EventEmitter {
+    constructor() {
+        super() // Access parent class methods
+    }
+}
+
+const myEmitter = new Sales()
+// Use myEmitter as before
+```
+
+## HTTP Server with Events Example
+```js
+import http from "http"
+
+const server = http.createServer()
+
+// Multiple listeners for 'request' event
+server.on("request", (req, res) => {
+    console.log("Request received")
+    console.log(req.url)
+    res.end("Request received")
+})
+
+server.on("request", (req, res) => {
+    console.log("Another request 🎯")
+})
+
+// Listen for server close event
+server.on("close", () => {
+    console.log("Server closed")
+})
+
+server.listen(8000, "127.0.0.1", () => {
+    console.log("Waiting for requests...")
+})
 ```
 
 # Streams In Node.js
-- streams are a way to handle reading and writing a data
 
+## Core Concepts
+- Process data piece by piece without loading entire data into memory
+- All streams extend EventEmitter
+- Used for: large files, video streaming, real-time data
+
+## Types
+1. Readable Streams (read data)
+   - Events: 'data', 'end'
+   - Methods: pipe(), read()
+   - Example: HTTP request
+
+2. Writable Streams (write data)
+   - Events: 'drain', 'finish'
+   - Methods: write(), end()
+   - Example: HTTP response
+
+3. Duplex Streams (read & write)
+   - Example: Web sockets
+
+4. Transform Streams (modify while streaming)
+   - Example: zlib compression
+
+## Stream Implementation Examples
+
+### 1. Basic Solution (Not Recommended)
 ```js
+import http from "http"
+import fs from "fs"
+
+const server = http.createServer((req, res) => {
+    // Solution 1: Load entire file into memory
+    fs.readFile("test-file.txt", (err, data) => {
+        if (err) console.log(err);
+        res.end(data);
+    });
+});
+```
+
+### 2. Using Streams (Better)
+```js
+const server = http.createServer((req, res) => {
+    // Solution 2: Streaming with events
+    const readable = fs.createReadStream("test-file.txt");
+    
+    readable.on("data", (chunk) => {
+        res.write(chunk);
+    });
+    
+    readable.on("end", () => {
+        res.end();
+    });
+    
+    readable.on("error", (err) => {
+        console.log(err);
+        res.statusCode = 500;
+        res.end("File not found");
+    });
+});
+```
+
+### 3. Using Pipe (Best Practice)
+```js
+const server = http.createServer((req, res) => {
+    // Solution 3: Using pipe operator
+    const readable = fs.createReadStream("test-file.txt");
+    // readable source -> pipe -> writable destination
+    readable.pipe(res);
+});
+
+
+// general examples
 // writing stream
 import fs from "fs";
 
@@ -492,13 +832,5 @@ stream.on('data',(data)=>{
     console.log(data);
     
 })
+
 ```
-
-
-
-
-
-
-
-
-

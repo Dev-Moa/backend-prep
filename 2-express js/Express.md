@@ -100,6 +100,75 @@ app.listen(PORT,()=>{
 })
 
 ```
+# APIs and RESTful API Design
+
+
+- Introduction to APIs**  
+- API = Application Programming Interface  
+- Allows software components to communicate (e.g., web APIs, Node.js modules, DOM API).  
+- Web APIs: Send data between client and server via HTTP requests.  
+
+---
+
+**What is REST?**  
+- REST = **Representational State Transfer**  
+- Architecture for building logical, easy-to-consume web APIs.  
+- Principles:  
+  0- Resources separated into logical resources
+  1- Resources exposed via structured URLs.  
+  2- Use HTTP methods (GET, POST, etc.) for actions.  
+  3- Stateless communication.  
+  4- JSON data format.  
+
+---
+
+**1- REST Resources**  
+- **Resource**: Object/data with a unique identifier (e.g., tours, users, reviews).  
+- **Endpoints**: Structured URLs for resources (e.g., `/tours`, `/users`).  
+  - Avoid verbs in URLs (use HTTP methods instead).  
+  - Example of bad vs. good endpoints:  
+    - ❌ `/getTour` → ✅ `/tours` (with GET method).  
+
+---
+
+**2- HTTP Methods & CRUD Operations**  
+| **HTTP Method** | **CRUD Action** | **Purpose**                          |  
+|------------------|-----------------|--------------------------------------|  
+| `GET`            | Read            | Retrieve data (e.g., `/tours`).      |  
+| `POST`           | Create          | Add new resource (e.g., `/tours`).   |  
+| `PUT/PATCH`      | Update          | Modify existing resource (e.g., `/tours/5`). |  
+| `DELETE`         | Delete          | Remove resource (e.g., `/tours/5`).  |  
+
+---
+
+**3-JSON Data Format**  
+- **JSON** = Lightweight data interchange format (keys as strings, values as strings/numbers/objects).  
+- Example response:  
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "id": 5,
+      "name": "Adventure Tour",
+      "price": 997
+    }
+  }
+  ```  
+- **Jsend**: Standard for response formatting (includes `status`, `data`, or `message`).  
+
+**4-Statelessness in REST**  
+- **Stateless**: Server does not store client state.  
+- Each request must contain all necessary info (client handles state).  
+- Example:  
+  - ❌ `/tours/nextPage` (server tracks current page) →  
+  - ✅ `/tours/page/6` (client specifies page number).  
+
+- Key Takeaways 
+1. REST APIs use logical resources and HTTP methods for CRUD.  
+2. Endpoints should be noun-based (e.g., `/tours`, not `/getTours`).  
+3. Stateless design simplifies scalability and reliability.  
+4. JSON ensures consistency in data exchange.  
+
 
 ## GET REQUESTS
 - now we know how to setup basic express app lets learn routes and how to create them in beginner level
@@ -688,9 +757,6 @@ app.listen(3000, () => {
 
 ---
 
-- NOTE : remember in thunder client  you will need to put token in auth bearer
-
-
 
 ## File Uploads
 
@@ -823,3 +889,21 @@ app.listen(PORT, () => console.log(`Server running on PORT ${PORT}`));
 
 ```
 
+# STATUS
+
+## HTTP Status Codes (80/20)
+
+| Code | Name                   | When to Use / What It Means                                  |
+|------|------------------------|--------------------------------------------------------------|
+| 200  | OK                     | Standard response for successful GET/POST/PUT requests.      |
+| 201  | Created                | Resource successfully created (e.g., POST → new record).     |
+| 204  | No Content             | Success, but nothing to return (e.g., DELETE, empty PUT).    |
+| 301  | Moved Permanently      | URL has changed permanently (caching & SEO friendly).        |
+| 302  | Found                  | Temporary redirect (e.g., after form submission).            |
+| 304  | Not Modified           | Client cache is up to date—no need to resend body.           |
+| 400  | Bad Request            | Malformed syntax or invalid request parameters.              |
+| 401  | Unauthorized           | Authentication required or failed (e.g., invalid token).     |
+| 403  | Forbidden              | Authenticated but not allowed to access this resource.       |
+| 404  | Not Found              | Resource/endpoint does not exist.                            |
+| 500  | Internal Server Error  | Generic server‑side failure—check your logs.                 |
+| 503  | Service Unavailable    | Server overloaded or down for maintenance (try again later). |
