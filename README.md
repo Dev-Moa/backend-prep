@@ -13,7 +13,7 @@ A structured self-study path through backend engineering, worked through while e
 
 ## Why this exists
 
-I'm a self-taught engineer. This repo is the record of how I built the backend foundations I now use in production — Django/DRF in my day job, Kubernetes daily. No one handed me this path; I designed it and walked it, one topic at a time.
+I'm a self-taught engineer. 
 
 ## Status
 
